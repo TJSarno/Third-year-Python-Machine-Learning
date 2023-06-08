@@ -1,0 +1,90 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+
+import numpy as np
+import numpy.linalg as linalg
+
+from sklearn.model_selection import train_test_split
+
+df = pd.read_csv("Task1 - dataset - pol_regression.csv")
+
+x_train = df['x']
+y_train = df['y']
+
+X = np.column_stack((np.ones(x_train.shape), x_train))
+X
+
+XX = X.transpose().dot(X)
+
+#w = np.linalg.solve(XX, X.transpose().dot(y_train))
+w = np.linalg.inv(XX).dot(X.transpose().dot(y_train))
+
+def getPolynomialDataMatrix(x, degree):
+	#Returning an array of ones of shape x (x in this case being the dataset)
+    X = np.ones(x.shape)
+    #Creating x^0 , x^1, x^2, ... , x^degree and stacking it in the array
+    for i in range(1,degree + 1):
+        X = np.column_stack((X, x ** i))
+    return X
+
+def getWeightsForPolynomialFit(x,y,degree):
+	#Using the previous function to get a polynomial data matrix to multiply against
+    X = getPolynomialDataMatrix(x, degree)
+
+    #Multiyping X by it's transpose
+    XX = X.transpose().dot(X)
+    #Calculating weights using Fermats Theorem
+    w = np.linalg.solve(XX, X.transpose().dot(y))
+
+    return w
+
+def x_transform(X, degrees):
+    
+    # X --> Input.
+    # degrees --> A list, We add X^(value) feature to the input
+    #             where value is one of the values in the list.
+    
+    # making a copy of X.
+    t = X.copy()
+    
+    # Appending columns of higher degrees to X.
+    for i in degrees:
+        X = np.append(X, t**i, axis=1)
+            
+    return X
+
+def pol_regression(features_train, y_train, degree):
+    
+    #Calculating the parameters from the inputted data
+    parameters = getWeightsForPolynomialFit(features_train,y_train,degree)
+    
+    #Setting up a polynomial Data Matrix based on the given dataset (in this case features_train)
+    x1 = getPolynomialDataMatrix(features_train, degree)
+
+
+    #Multiplying each value in the matrix by the weights previously calculated
+    y1 = x1.dot(parameters)
+    
+    #Returning the multipled results, the new y values
+    return y1
+
+
+#degree1 = pol_regression(x_train, y_train,1)
+#degree2 = pol_regression(x_train, y_train,2)
+#degree3 = pol_regression(x_train, y_train,3) 
+#degree6 = pol_regression(x_train, y_train,6)
+#degree10 = pol_regression(x_train, y_train,10)
+
+
+plt.clf()
+plt.plot(x_train,y_train, 'bo')
+
+#plt.hold(True)
+plt.savefig('trainingdata.png')
+#plt.scatter(x_train, degree1, marker="x")
+#plt.scatter(x_train, degree2, marker="*")
+#plt.scatter(x_train, degree3, marker="D")
+#plt.scatter(x_train, degree6, marker="+")
+#plt.scatter(x_train, degree3, marker="s")
+plt.legend(('Training Points', 'Degree 1', 'Degree 2', 'Degree 3', 'Degree 6', 'Degree 10'))
+plt.show()

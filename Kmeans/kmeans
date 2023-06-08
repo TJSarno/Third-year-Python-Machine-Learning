@@ -1,0 +1,65 @@
+import matplotlib.pyplot as plt
+from matplotlib import style
+style.use('ggplot')
+import numpy as np
+import pandas as pd
+
+data = pd.read_csv('Task2 - dataset - dog_breeds.csv')
+
+f1 = data['height'].values
+f2 = data['tail length'].values
+f3 = data['leg length'].values
+f4 = data['nose circumference'].values
+
+
+X = np.array((f1,f2))
+
+# plt.scatter(X[:,0], X[:,1], s=150)
+# plt.show()
+
+colors = 10*["g","r","c","b","k"]
+
+
+#Function
+
+def initialise_centroids():
+
+    k = 3
+    # X coordinates of random centroids
+    C_x = np.random.randint(0, np.max(X), size=k)
+    # Y coordinates of random centroids
+    C_y = np.random.randint(0, np.max(X), size=k)
+    C = np.array(list(zip(C_x, C_y)), dtype=np.float32)
+
+    return C
+
+def compute_euclidean_distance(vec_1, vec_2):
+    #distance = np.sqrt(np.sum((vec_1 - vec_2) ** 2)) 
+    distance = np.linalg.norm(vec_1 - vec_2)
+    return distance
+
+
+def kmeans(data):
+    centroids = initialise_centroids()
+    max_iter = 300
+
+    for i in range(max_iter):
+        classifications = {}
+
+        for i in range(2):
+            classifications[i] = []
+
+        for featureset in data:
+            #distances = [compute_eucludian_distances(featureset, centroids) for centroid in centroids]
+            distances = [np.linalg.norm(featureset-centroids[centroid]) for centroid in centroids]
+            #distances = compute_euclidean_distance(X[i], centroids)
+            classification = distances.index(min(distances))
+            classifications[classification].append(featureset)
+
+        prev_centroids = dict(centroids)
+
+        for classification in classifications:
+            centroids[classification] = np.average(classifications[classification], axis = 0)
+
+
+kmeans(X)

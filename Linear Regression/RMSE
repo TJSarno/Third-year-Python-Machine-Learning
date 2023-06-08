@@ -1,0 +1,125 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+
+import numpy as np
+import numpy.linalg as linalg
+
+from sklearn.model_selection import train_test_split
+
+df = pd.read_csv("Task1 - dataset - pol_regression.csv")
+
+x = df['x']
+y = df['y']
+
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.30, random_state=20)
+
+X = np.column_stack((np.ones(x_train.shape), x_train))
+X
+
+XX = X.transpose().dot(X)
+
+#w = np.linalg.solve(XX, X.transpose().dot(y_train))
+w = np.linalg.inv(XX).dot(X.transpose().dot(y_train))
+
+def getPolynomialDataMatrix(x, degree):
+	#Returning an array of ones of shape x (x in this case being the dataset)
+    X = np.ones(x.shape)
+    #Creating x^0 , x^1, x^2, ... , x^degree and stacking it in the array
+    for i in range(1,degree + 1):
+        X = np.column_stack((X, x ** i))
+    return X
+
+def getWeightsForPolynomialFit(x,y,degree):
+	#Using the previous function to get a polynomial data matrix to multiply against
+    X = getPolynomialDataMatrix(x, degree)
+
+    #Multiyping X by it's transpose
+    XX = X.transpose().dot(X)
+    #Calculating weights using Fermats Theorem
+    w = np.linalg.solve(XX, X.transpose().dot(y))
+
+    return w
+
+def x_transform(X, degrees):
+    
+    # X --> Input.
+    # degrees --> A list, We add X^(value) feature to the input
+    #             where value is one of the values in the list.
+    
+    # making a copy of X.
+    t = X.copy()
+    
+    # Appending columns of higher degrees to X.
+    for i in degrees:
+        X = np.append(X, t**i, axis=1)
+            
+    return X
+
+def pol_regression(features_train, y_train, degree):
+    
+    #Calculating the parameters from the inputted data
+    parameters = getWeightsForPolynomialFit(features_train,y_train,degree)
+    
+    #Setting up a polynomial Data Matrix based on the given dataset (in this case features_train)
+    x1 = getPolynomialDataMatrix(features_train, degree)
+
+
+    #Multiplying each value in the matrix by the weights previously calculated
+    y1 = x1.dot(parameters)
+    
+    #Returning the multipled results, the new y values
+    return y1
+
+
+#degree1 = pol_regression(x_train, y_train,1)
+#degree2 = pol_regression(x_train, y_train,2)
+#degree3 = pol_regression(x_train, y_train,3) 
+#degree6 = pol_regression(x_train, y_train,6)
+#degree10 = pol_regression(x_train, y_train,10)
+
+def compute_euclidean_distance(vec_1, vec_2):
+    distance = np.linalg.norm(vec_1 - vec_2)
+
+def eval_pol_regression(x,y, degree):
+    y_pred = pol_regression(x,y,degree)
+    rmse = np.sqrt(((y_pred - y) ** 2).mean())
+    print(rmse)
+    return rmse
+
+#Degree 1
+degree1_train = eval_pol_regression(x_train, y_train, 1)
+degree1_test = eval_pol_regression(x_test, y_test, 1)
+
+#Degree 2
+degree2_train = eval_pol_regression(x_train, y_train, 2)
+degree2_test = eval_pol_regression(x_test, y_test, 2)
+
+#Degree 3
+degree3_train = eval_pol_regression(x_train, y_train, 3)
+degree3_test = eval_pol_regression(x_test, y_test, 3)
+
+#Degree 6
+degree6_train = eval_pol_regression(x_train, y_train, 6)
+degree6_test = eval_pol_regression(x_test, y_test, 6)
+
+#Degree 10
+degree10_train = eval_pol_regression(x_train, y_train, 10)
+degree10_test = eval_pol_regression(x_test, y_test, 10)
+
+
+train_degrees = [degree1_train, degree2_train, degree3_train, degree6_train, degree10_train]
+test_degrees = [degree1_test, degree2_test, degree3_test, degree6_test, degree10_test]
+
+
+
+X_temp = ['1','2','3','6','10']
+
+  
+X_axis = np.arange(len(X_temp))
+
+plt.xticks(X_axis, X_temp)  
+plt.bar(X_axis - 0.2, train_degrees, 0.4, label = 'Train')
+plt.bar(X_axis + 0.2, test_degrees, 0.4, label = 'Test')
+plt.xlabel("Degree")
+plt.ylabel("RMSE")
+plt.show()
